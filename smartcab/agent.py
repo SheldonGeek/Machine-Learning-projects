@@ -9,7 +9,7 @@ class LearningAgent(Agent):
     """ An agent that learns to drive in the Smartcab world.
         This is the object you will be modifying. """
 
-    def __init__(self, env, learning=True, epsilon=1.0, alpha=0.7):
+    def __init__(self, env, learning=True, epsilon=1.0, alpha=0.2):
         super(LearningAgent, self).__init__(env)     # Set the agent in the evironment
         self.planner = RoutePlanner(self.env, self)  # Create a route planner
         self.valid_actions = self.env.valid_actions  # The set of valid actions
@@ -53,13 +53,12 @@ class LearningAgent(Agent):
         # Update epsilon using a decay function of your choice
         # Update additional class parameters as needed
         # If 'testing' is True, set epsilon and alpha to 0
-        # I refer to this link to learn the best decay function -> epsilon=ABS(COS(at))
-        # https://github.com/diyjac/smartcab
+        #e^-0.02t
         if testing:
             self.alpha = 0
             self.epsilon = 0
         else:
-            self.epsilon =math.fabs(math.cos(self.step*self.alpha))
+            self.epsilon =math.exp(-0.02*self.step)
             #self.epsilon = self.epsilon - 0.05
             self.step+=1
 
@@ -132,15 +131,15 @@ class LearningAgent(Agent):
         # Otherwise, choose an action with the highest Q-value for the current state
         # Be sure that when choosing an action with highest Q-value that you randomly select between actions that "tie".
         #
-
+        action_list = []
         if not self.learning or random.random() <= self.epsilon:
             action = random.choice(self.valid_actions)
         else:
             max_Q = self.get_maxQ(state)
             for temp_action in self.Q[state]:
                 if max_Q == self.Q[state][temp_action]:
-                    action = temp_action
-
+                    action_list.append(temp_action)
+            action = random.choice(action_list)
         return action
 
 
@@ -193,7 +192,7 @@ def run():
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
     ep = 1
-    al = 0.5
+    al = 0.2
     agent = env.create_agent(LearningAgent, epsilon=ep, alpha=al, learning=True)
 
     ##############
@@ -217,7 +216,7 @@ def run():
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(n_test = 10 , tolerance=0.001)
+    sim.run(n_test = 10 , tolerance=0.011)
 
 
 if __name__ == '__main__':
